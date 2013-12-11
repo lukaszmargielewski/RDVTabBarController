@@ -104,20 +104,44 @@
 }
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex {
-    if ([self selectedViewController]) {
-        [[self selectedViewController] willMoveToParentViewController:nil];
-        [[[self selectedViewController] view] removeFromSuperview];
-        [[self selectedViewController] removeFromParentViewController];
+    
+    UIViewController *fromVC = [self selectedViewController];
+    UIViewController *toVC = [[self viewControllers] objectAtIndex:selectedIndex];
+    
+    CGRect containerBounds = [[self contentView] bounds];
+    
+    if (fromVC) {
+        
+        [fromVC willMoveToParentViewController:nil];
+        [fromVC.view removeFromSuperview];
+        [fromVC removeFromParentViewController];
     }
     
     _selectedIndex = selectedIndex;
-    [[self tabBar] setSelectedItem:[[self tabBar] items][selectedIndex]];
+    RDVTabBarItem *selectedItem = [[self tabBar] items][selectedIndex];
+
+    [self.tabBar setSelectedItem:selectedItem];
+    [self setSelectedViewController:toVC];
+
     
-    [self setSelectedViewController:[[self viewControllers] objectAtIndex:selectedIndex]];
-    [self addChildViewController:[self selectedViewController]];
-    [[[self selectedViewController] view] setFrame:[[self contentView] bounds]];
-    [[self contentView] addSubview:[[self selectedViewController] view]];
-    [[self selectedViewController] didMoveToParentViewController:self];
+    [self addChildViewController:toVC];
+    [toVC.view setFrame:containerBounds];
+    [[self contentView] addSubview:toVC.view];
+    [toVC didMoveToParentViewController:self];
+    
+    /*
+         
+    [self addChildViewController:toVC];
+    [fromVC willMoveToParentViewController:nil];
+
+         
+    [self transitionFromViewController:fromVC toViewController:toVC duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{} completion:^(BOOL finished) {
+        [fromVC removeFromParentViewController];
+        [toVC didMoveToParentViewController:self];
+    }];
+    
+     */
+    
 }
 
 - (void)setViewControllers:(NSArray *)viewControllers {
